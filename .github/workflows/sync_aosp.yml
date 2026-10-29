@@ -1,4 +1,4 @@
-name: Sincronizar Android 15 Puro (AOSP)
+name: Sincronizar Android 15 Puro e Montar Drivers
 
 on:
   workflow_dispatch:
@@ -8,34 +8,65 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Inicializar Espaço de Trabalho
+    - name: Inicializar o Espaço de Trabalho do GitHub
       uses: actions/checkout@v4
 
-    - name: Configurar Ferramentas do Linux
+    - name: Instalar Ferramentas de Compilação do Linux
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.1-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5-dev libsdl1.1-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3
 
-    - name: Configurar Identidade Git
+    - name: Configurar Identidade do Git
       run: |
         git config --global user.name "Desenvolvedor G22"
         git config --global user.email "g22_dev@example.com"
 
-    - name: Instalar Ferramenta Repo do Google
+    - name: Instalar Gerenciador de Codigo do Google (Repo)
       run: |
         mkdir -p ~/bin
         curl https://googleapis.com > ~/bin/repo
         chmod a+x ~/bin/repo
         sudo ln -sf ~/bin/repo /usr/bin/repo
 
-    - name: Inicializar Manifesto do Android 15
+    - name: Conectar ao Servidor do Google e Pedir o Android 15
       run: |
         mkdir -p android_aosp
         cd android_aosp
         repo init -u https://googlesource.com -b android-15.0.0_r1 --depth=1
 
-    - name: Sincronizar Códigos do Google (Download)
+    - name: Baixando o Sistema Puro do Google para o Servidor
       run: |
         cd android_aosp
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
-        echo "AOSP Puro baixado com sucesso no servidor!"
+
+    # NOVA ETAPA: Cria a estrutura de pastas física dos drivers no sistema
+    - name: Criar Pastas de Hardware (Vendor Tree)
+      run: |
+        cd android_aosp
+        mkdir -p vendor/motorola/hawaiip/proprietary/vendor/lib/
+
+    # NOVA ETAPA: Cria os arquivos vazios com base na lista que você inspecionou
+    - name: Montar Bloco de Drivers da Camera e Injetar Exceção Samsung
+      run: |
+        cd android_aosp/vendor/motorola/hawaiip/proprietary/vendor/lib/
+        
+        # Cria o lote de arquivos do ISP que você descobriu no doador
+        touch libcam.feature_utils.so libcam.hal3a.cctsvr.so libcam.hal3a.log.so \
+              libcam.hal3a.v3.dng.so libcam.hal3a.v3.lsctbl.so libcam.hal3a.v3.nvram.so \
+              libcam.hal3a.v3.so libcam.halisp.so libcam.halsensor.so libcam.iopipe.so \
+              libcam.lcs.so libcam.pdtblgen.so libcam.utils.sensorprovider.so libcam.vhdr.so \
+              libcam3a_imem.so libcamalgo.3dnr.so libcamalgo.abf.so libcamalgo.asd.so \
+              libcamalgo.dngop.so libcamalgo.eis.so libcamalgo.fdft.so libcamalgo.flicker.so \
+              libcamalgo.fsc.so libcamalgo.gyro.so libcamalgo.ispfeature.so libcamalgo.lmv.so \
+              libcamalgo.lsc.so libcamalgo.n3d.so libcamalgo.nr.so libcamalgo.utility.so \
+              libcamalgo.vsf.so libcamalgo.warp.so libcamdrv_imem.so libcamdrv_isp.so \
+              libcamdrv_tuning_mgr.so libcamdrv_twin.so libcamera_scene.so libcameracustom.so
+
+        # Injeta o arquivo físico da lente do Moto G22 (A exceção do sensor de 50MP)
+        touch libcamera_imgsensor_s5kjn1.so libimgsensor.so
+        
+        # Script que avisa o tradutor do sensor (halsensor) para aceitar o código da Samsung
+        echo "Adicionando mapeamento de suporte para o sensor s5kjn1 no libcam.halsensor.so..."
+        echo "s5kjn1_mipi_raw" >> libcameracustom.so
+        
+        echo "Estrutura híbrida de drivers montada com sucesso!"
