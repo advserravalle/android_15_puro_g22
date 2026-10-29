@@ -1,0 +1,21 @@
+# Câmera e Processamento de Imagem (ISP)
+vendor/bin/hw/android.hardware.camera.provider@2.6-service-mediatek
+vendor/lib/libcamera_imgsensor_s5kjn1.so
+vendor/lib/libimgsensor.so
+vendor/lib/libcamalgo.so
+vendor/lib/libcam.halsensor.so
+vendor/lib/libcam3exif.so
+vendor/lib/libmdnativecamera.so
+
+# Tela e Toque (Touchscreen)
+vendor/lib/libcul.so
+vendor/lib/libgui_ext.so
+
+# Sensores e Biometria
+vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-service
+vendor/lib/hw/fingerprint.default.so
+vendor/lib/libsensors.cpp.so
+
+# Conectividade (Wi-Fi e Bluetooth)
+vendor/firmware/WMT_SOC.cfg
+vendor/firmware/wifi.cfg
