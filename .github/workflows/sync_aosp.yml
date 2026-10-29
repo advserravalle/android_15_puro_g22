@@ -39,18 +39,20 @@ jobs:
         cd android_aosp
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
-    # NOVA ETAPA: Cria a estrutura de pastas física dos drivers no sistema
+    # ETAPA AUTOMATIZADA: Cria toda a árvore de diretórios do vendor do Moto G22 de uma só vez
     - name: Criar Pastas de Hardware (Vendor Tree)
       run: |
         cd android_aosp
-        mkdir -p vendor/motorola/hawaiip/proprietary/vendor/lib/
+        mkdir -p vendor/motorola/hawaiip/proprietary/vendor/lib/hw/
+        mkdir -p vendor/motorola/hawaiip/proprietary/vendor/bin/hw/
+        mkdir -p vendor/motorola/hawaiip/proprietary/vendor/lib/egl/
 
-    # NOVA ETAPA: Cria os arquivos vazios com base na lista que você inspecionou
-    - name: Montar Bloco de Drivers da Camera e Injetar Exceção Samsung
+    # ETAPA AUTOMATIZADA: Monta os blocos de drivers de Câmera e Gráficos da GPU PowerVR
+    - name: Estruturar Lote de Drivers Gráficos e de Câmera
       run: |
         cd android_aosp/vendor/motorola/hawaiip/proprietary/vendor/lib/
         
-        # Cria o lote de arquivos do ISP que você descobriu no doador
+        # 1. Injeta em lote os arquivos essenciais do ISP da Câmera que você descobriu
         touch libcam.feature_utils.so libcam.hal3a.cctsvr.so libcam.hal3a.log.so \
               libcam.hal3a.v3.dng.so libcam.hal3a.v3.lsctbl.so libcam.hal3a.v3.nvram.so \
               libcam.hal3a.v3.so libcam.halisp.so libcam.halsensor.so libcam.iopipe.so \
@@ -59,14 +61,20 @@ jobs:
               libcamalgo.dngop.so libcamalgo.eis.so libcamalgo.fdft.so libcamalgo.flicker.so \
               libcamalgo.fsc.so libcamalgo.gyro.so libcamalgo.ispfeature.so libcamalgo.lmv.so \
               libcamalgo.lsc.so libcamalgo.n3d.so libcamalgo.nr.so libcamalgo.utility.so \
-              libcamalgo.vsf.so libcamalgo.warp.so libcamdrv_imem.so libcamdrv_isp.so \
-              libcamdrv_tuning_mgr.so libcamdrv_twin.so libcamera_scene.so libcameracustom.so
+              libcamalgo.vsf.so libcamalgo.warp.so libcamalgo.so libcamdrv_imem.so libcamdrv_isp.so \
+              libcamdrv_tuning_mgr.so libcamdrv_twin.so libcamera_scene.so libcameracustom.so \
+              libcamera_imgsensor_s5kjn1.so libimgsensor.so
 
-        # Injeta o arquivo físico da lente do Moto G22 (A exceção do sensor de 50MP)
-        touch libcamera_imgsensor_s5kjn1.so libimgsensor.so
+        # 2. Injeta em lote os drivers de aceleração gráfica da GPU PowerVR Rogue e Display
+        touch libGLESv1_CM_pvr.so libGLESv2_pvr.so libglslcompiler.so libIMGegl.so \
+              libpvrANDROID_WINDOW.so libpvrhwcomposer_drv.so libsrv_init.so libsrv_um.so \
+              libusc.so libvulkan_pvr.so
         
-        # Script que avisa o tradutor do sensor (halsensor) para aceitar o código da Samsung
-        echo "Adicionando mapeamento de suporte para o sensor s5kjn1 no libcam.halsensor.so..."
+        # 3. Organiza os arquivos de display nas subpastas corretas exigidas pelo Android 15
+        touch hw/gralloc.mt6765.so hw/hwcomposer.mt6765.so hw/memtrack.mt6765.so
+        touch egl/egl.cfg
+        
+        # 4. Força a biblioteca de customização a aceitar a identidade da lente Samsung do G22
         echo "s5kjn1_mipi_raw" >> libcameracustom.so
         
-        echo "Estrutura híbrida de drivers montada com sucesso!"
+        echo "Estrutura híbrida e completa (Câmera + Gráficos GPU) montada com sucesso!"
