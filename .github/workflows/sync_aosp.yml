@@ -69,6 +69,16 @@ jobs:
         touch libGLESv1_CM_pvr.so libGLESv2_pvr.so libglslcompiler.so libIMGegl.so \
               libpvrANDROID_WINDOW.so libpvrhwcomposer_drv.so libsrv_init.so libsrv_um.so \
               libusc.so libvulkan_pvr.so
+              
+        # 2.1 Injeta a identidade física de TODAS as outras lentes do Moto G22
+        # Câmera Frontal (Selfie Samsung)
+        touch libcamera_imgsensor_s5k4h7.so
+        # Câmera Ultra-Wide (Ângulo Aberto OmniVision)
+        touch libcamera_imgsensor_ov8856.so
+        # Câmera Macro (OmniVision)
+        touch libcamera_imgsensor_ov02b10.so
+        # Câmera de Profundidade (Modo Retrato GalaxyCore)
+        touch libcamera_imgsensor_gc02m1.so
         
         # 3. Organiza os arquivos de display nas subpastas corretas exigidas pelo Android 15
         touch hw/gralloc.mt6765.so hw/hwcomposer.mt6765.so hw/memtrack.mt6765.so
